@@ -1,39 +1,53 @@
-## About the function: 
-## 'directory' is a character vector of length 1 indicating
-## the location of the CSV files
-## 'pollutant' is a character vector of length 1 indicating
-## the name of the pollutant for which we will calculate the
-## mean; either "sulfate" or "nitrate".
-## 'id' is an integer vector indicating the monitor ID numbers to be used
-## Return the mean of the pollutant across all monitors list
-## in the 'id' vector (ignoring NA values)
-pollutantmean <- function(directory, pollutant, id = 1:332) {
-  ## get filenames 
-  f_names <- list.files(path=directory, pattern="*.csv")
+## The goal of this code is to cash the inverse of a matrix as it is a costly computation
+## and use the casehd value when it's needed
+
+## This function creates a special "matrix" object that can cache its inverse.
+
+makeCacheMatrix <- function(x = matrix()) {
+  m <- NULL  ## Initialize the inverse property
   
-  ## initiate pollutant values vector 
-  pollutant_vals <- vector()
-  
-  ## loop over all id's
-  for(i in id) {
-    
-    ## construct currnet file name
-    f_names <- sprintf("%03d.csv", i)
-    f_path <- paste(directory, f_names, sep="/")
-    
-    ## load current file data
-    spec_data <- read.csv(f_path)
-    
-    ## Select required column
-    data <- spec_data[,pollutant]
-    
-    ## ignore any missing values
-    data <- data[!is.na(data)]
-    
-    ## append to pollutant values vector
-    pollutant_vals <- c(pollutant_vals, data)
+  set <- function(y){  ## Method to set the matrix
+    x <<- y
+    m <<- NULL
   }
   
-  ## return the mean of the pollutant across all monitors list
-  mean(pollutant_vals)
+  get <- function(){  ## Method the get the matrix
+    x
+  }
+  
+  setInverse <- function (matrix){ ## Method to set the inverse of the matrix
+    m <<- matrix
+  } 
+  
+  getInverse <- function() { ## Method to get the inverse of the matrix
+    m
+  } 
+  
+  ## Return a list of the methods
+  list (set = set, get = get, setInverse = setInverse, getInverse = getInverse)
+}
+
+
+## This function computes the inverse of the special "matrix" returned by makeCacheMatrix above.
+
+cacheSolve <- function(x, ...) {
+  ## Return a matrix that is the inverse of 'x'
+  m <- x$getInverse()
+  
+  ## check if inverse already exist in cache
+  if(!is.null(m)){
+    message("getting cached data")
+    return (m)
+  }
+  
+  ## Get the matrix from our object
+  data <- x$get()
+  
+  ## Calculate the inverse using matrix multiplication
+  m <- solve(data) %*% data
+  
+  ## Set the inverse to the object
+  x$setInverse(x)
+  ## Return the matrix
+  m
 }
