@@ -1,3 +1,6 @@
+## Samar Alsaleh 
+## Dec 3, 2014
+
 ## The goal of this code is to cash the inverse of a matrix as it is a costly computation
 ## and use the casehd value when it's needed
 
